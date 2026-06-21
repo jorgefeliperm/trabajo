@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador & Auditor de Roster - Multimes 2026 (Persistente)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js para Estadísticas de Cobertura -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons para una interfaz moderna -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;500;600;700;800;900&family=JetBrains+Mono:wght=400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-mono-code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="min-h-full flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white">
+
+<script>
+    // Configuración calendárica del segundo semestre de 2026 (Año 2026)
+    const monthsConfig = {
+        "2026-06": { name: "Junio 2026", days: 30, startDayOfWeek: 1 }, // Lunes
+        "2026-07": { name: "Julio 2026", days: 31, startDayOfWeek: 3 }, // Miércoles
+        "2026-08": { name: "Agosto 2026", days: 31, startDayOfWeek: 6 }, // Sábado
+        "2026-09": { name: "Septiembre 2026", days: 30, startDayOfWeek: 2 }, // Martes
+        "2026-10": { name: "Octubre 2026", days: 31, startDayOfWeek: 4 }, // Jueves
+        "2026-11": { name: "Noviembre 2026", days: 30, startDayOfWeek: 7 }, // Domingo
+        "2026-12": { name: "Diciembre 2026", days: 31, startDayOfWeek: 2 }  // Martes
+    };
+
+    // Datos Base extraídos fielmente de "IMG-20260618-WA0000.jpg"
+    const originalPersonalData = [
+        {
+            id: "30038070",
+            nombre: "Gaston Genaro Flores Hernandez",
+            horasContrato: 188.00,
+            avatar: "GF",
+            color: "from-indigo-500 to-purple-600",
+            turnos: {
+                3:"T", 4:"T", 5:"T", 6:"T", 9:"M", 10:"M", 12:"N", 13:"N", 14:"N", 15:"N", 16:"N", 19:"T", 20:"T", 21:"N", 22:"N", 23:"N", 27:"T", 28:"T", 29:"T", 30:"T"
+            },
+            horasDetalle: {
+                3:"14:00-23:00", 4:"14:00-23:00", 5:"14:00-23:00", 6:"14:00-23:00", 9:"06:00-15:00", 10:"06:00-15:00", 12:"22:00-07:00", 13:"22:00-07:00", 14:"18:00-06:00", 15:"22:00-08:00", 16:"21:00-07:00", 19:"14:00-23:00", 20:"14:00-23:00", 21:"22:00-08:00", 22:"22:00-08:00", 23:"22:00-08:00", 27:"14:00-23:00", 28:"14:00-23:00", 29:"14:00-23:00", 30:"14:00-23:00"
+            }
+        },
+        {
+            id: "30050488",
+            nombre: "Gonzalez Vergara Jose Antonio",
+            horasContrato: 172.00,
+            avatar: "JG",
+            color: "from-sky-500 to-blue-600",
+            turnos: {
+                2:"T", 3:"T", 5:"N", 6:"N", 8:"N", 11:"M", 12:"M", 13:"T", 15:"T", 16:"T", 17:"T", 18:"T", 19:"T", 22:"T", 23:"T", 24:"N", 28:"M", 29:"M", 30:"M"
+            },
+            horasDetalle: {
+                2:"14:00-23:00", 3:"14:00-23:00", 5:"22:00-07:00", 6:"22:00-07:00", 8:"22:00-08:00", 11:"06:00-15:00", 12:"06:00-15:00", 13:"14:00-23:00", 15:"14:00-23:00", 16:"14:00-23:00", 17:"14:00-23:00", 18:"14:00-23:00", 19:"14:00-23:00", 22:"14:00-23:00", 23:"14:00-23:00", 24:"22:00-07:00", 28:"06:00-15:00", 29:"06:00-15:00", 30:"06:00-15:00"
+            }
+        },
+        {
+            id: "30038091",
+            nombre: "Joaquin Duran Silva",
+            horasContrato: 184.00,
+            avatar: "JD",
+            color: "from-teal-500 to-emerald-600",
+            turnos: {
+                1:"M", 2:"M", 3:"N", 4:"N", 9:"M", 10:"M", 13:"M", 14:"M", 15:"M", 16:"M", 19:"N", 20:"N", 21:"N", 22:"N", 23:"N", 26:"M", 27:"M", 29:"N", 30:"N"
+            },
+            horasDetalle: {
+                1:"07:00-16:00", 2:"07:00-16:00", 3:"22:00-07:00", 4:"22:00-07:00", 9:"07:00-16:00", 10:"07:00-16:00", 13:"07:00-16:00", 14:"07:00-16:00", 15:"07:00-16:00", 16:"07:00-16:00", 19:"22:00-07:00", 20:"22:00-07:00", 21:"22:00-07:00", 22:"22:00-08:00", 23:"22:00-08:00", 26:"07:00-16:00", 27:"07:00-16:00", 29:"22:00-08:00", 30:"22:00-08:00"
+            }
+        },
+        {
+            id: "30038093",
+            nombre: "Joel Cortes Jimenez",
+            horasContrato: 175.00,
+            avatar: "JC",
+            color: "from-amber-500 to-orange-600",
+            turnos: {
+                1:"T", 2:"T", 3:"T", 4:"T", 5:"T", 8:"N", 9:"N", 10:"N", 11:"N", 15:"T", 16:"T", 19:"M", 20:"M", 21:"M", 22:"T", 25:"N", 26:"N", 27:"N", 28:"N"
+            },
+            horasDetalle: {
+                1:"14:00-23:00", 2:"14:00-23:00", 3:"14:00-23:00", 4:"14:00-23:00", 5:"14:00-23:00", 8:"22:00-08:00", 9:"22:00-08:00", 10:"22:00-08:00", 11:"22:00-08:00", 15:"14:00-23:00", 16:"14:00-23:00", 19:"06:00-15:00", 20:"06:00-15:00", 21:"06:00-15:00", 22:"14:00-23:00", 25:"22:00-07:00", 26:"22:00-07:00", 27:"22:00-07:00", 28:"22:00-07:00"
+            }
+        },
+        {
+            id: "30038079",
+            nombre: "Jorge Felipe Rojas Mendez",
+            horasContrato: 194.00,
+            avatar: "JR",
+            color: "from-rose-500 to-pink-600",
+            turnos: {
+                1:"M", 2:"M", 3:"M", 4:"M", 7:"T", 8:"T", 9:"T", 10:"T", 11:"T", 12:"T", 17:"N", 18:"N", 19:"N", 20:"N", 21:"N", 24:"T", 25:"T", 26:"T", 27:"T", 30:"N"
+            },
+            horasDetalle: {
+                1:"06:00-15:00", 2:"06:00-15:00", 3:"06:00-15:00", 4:"06:00-15:00", 7:"14:00-23:00", 8:"14:00-23:00", 9:"14:00-23:00", 10:"14:00-23:00", 11:"14:00-23:00", 12:"14:00-23:00", 17:"22:00-07:00", 18:"22:00-07:00", 19:"22:00-07:00", 20:"22:00-07:00", 21:"18:00-06:00", 24:"14:00-23:00", 25:"14:00-23:00", 26:"14:00-23:00", 27:"14:00-23:00", 30:"22:00-08:00"
+            }
+        },
+        {
+            id: "30038257",
+            nombre: "Marcela Correa Cornejo",
+            horasContrato: 190.00,
+            avatar: "MC",
+            color: "from-fuchsia-500 to-purple-700",
+            turnos: {
+                1:"N", 2:"N", 3:"N", 4:"N", 8:"M", 9:"M", 13:"M", 14:"M", 17:"M", 18:"M", 19:"M", 20:"M", 23:"M", 24:"M", 25:"M", 26:"M", 27:"M", 30:"M"
+            },
+            horasDetalle: {
+                1:"22:00-08:00", 2:"22:00-08:00", 3:"22:00-08:00", 4:"22:00-08:00", 8:"06:00-15:00", 9:"06:00-15:00", 13:"06:00-15:00", 14:"06:00-18:00", 17:"06:00-15:00", 18:"06:00-15:00", 19:"06:00-15:00", 20:"06:00-15:00", 23:"06:00-15:00", 24:"06:00-15:00", 25:"06:00-15:00", 26:"06:00-15:00", 27:"06:00-15:00", 30:"06:00-15:00"
+            }
+        },
+        {
+            id: "30029580",
+            nombre: "Marcos Quezada Mauricio Esteban",
+            horasContrato: 174.00,
+            avatar: "MQ",
+            color: "from-cyan-500 to-blue-600",
+            turnos: {
+                1:"T", 3:"M", 4:"M", 5:"M", 6:"M", 7:"M", 9:"N", 10:"N", 11:"N", 12:"N", 15:"M", 16:"M", 17:"T", 18:"T", 20:"M", 22:"M", 24:"N", 25:"N", 26:"N", 27:"N"
+            },
+            horasDetalle: {
+                1:"14:00-23:00", 3:"06:00-15:00", 4:"06:00-15:00", 5:"06:00-15:00", 6:"06:00-15:00", 7:"06:00-15:00", 9:"22:00-08:00", 10:"22:00-08:00", 11:"22:00-07:00", 12:"21:00-07:00", 15:"06:00-15:00", 16:"06:00-15:00", 17:"14:00-23:00", 18:"14:00-23:00", 20:"06:00-15:00", 22:"06:00-15:00", 24:"22:00-07:00", 25:"22:00-08:00", 26:"22:00-07:00", 27:"22:00-08:00"
+            }
+        },
+        {
+            id: "30040052",
+            nombre: "Quiconez Angulo Luis Emiro",
+            horasContrato: 189.00,
+            avatar: "LQ",
+            color: "from-violet-500 to-purple-600",
+            turnos: {
+                3:"M", 4:"M", 5:"M", 6:"M", 7:"M", 9:"T", 10:"T", 12:"N", 13:"N", 14:"N", 17:"T", 18:"T", 19:"T", 23:"M", 24:"M", 25:"T", 26:"T", 29:"M", 30:"M"
+            },
+            horasDetalle: {
+                3:"06:00-15:00", 4:"06:00-15:00", 5:"06:00-15:00", 6:"06:00-15:00", 7:"06:00-15:00", 9:"14:00-23:00", 10:"14:00-23:00", 12:"22:00-07:00", 13:"22:00-07:00", 14:"22:00-07:00", 17:"14:00-23:00", 18:"14:00-23:00", 19:"14:00-23:00", 23:"06:00-15:00", 24:"06:00-15:00", 25:"14:00-23:00", 26:"14:00-23:00", 29:"06:00-15:00", 30:"06:00-15:00"
+            }
+        },
+        {
+            id: "30049270",
+            nombre: "Valdes Maltes Jorge Osvaldo",
+            horasContrato: 186.00,
+            avatar: "JV",
+            color: "from-emerald-500 to-green-600",
+            turnos: {
+                1:"N", 2:"N", 6:"T", 7:"T", 8:"T", 9:"T", 10:"T", 11:"T", 12:"T", 13:"T", 16:"N", 17:"N", 18:"N", 21:"M", 22:"T", 23:"T", 24:"T", 27:"M", 28:"T", 29:"T", 30:"T"
+            },
+            horasDetalle: {
+                1:"22:00-08:00", 2:"22:00-08:00", 6:"14:00-23:00", 7:"14:00-23:00", 8:"14:00-23:00", 9:"14:00-23:00", 10:"14:00-23:00", 11:"14:00-23:00", 12:"14:00-23:00", 13:"14:00-23:00", 16:"22:00-08:00", 17:"22:00-08:00", 18:"22:00-08:00", 21:"06:00-15:00", 22:"14:00-23:00", 23:"14:00-23:00", 24:"14:00-23:00", 27:"07:00-16:00", 28:"14:00-23:00", 29:"14:00-23:00", 30:"14:00-23:00"
+            }
+        }
+    ];
+
+    // Repositorio de Estado local (en memoria)
+    let rosterState = {};
+    let activeMonthKey = "2026-06";
+    let currentUserId = "invitado-local";
+
+    // Generador de línea base para meses posteriores (COMPLETAMENTE EN BLANCO)
+    function generateBaselineForMonth(monthKey) {
+        const config = monthsConfig[monthKey];
+        const baseline = JSON.parse(JSON.stringify(originalPersonalData));
+        
+        // CORRECCIÓN: Para meses que no son Junio, se limpian todos los turnos para que empiecen en blanco.
+        baseline.forEach((employee) => {
+            employee.turnos = {};
+            employee.horasDetalle = {};
+        });
+        return baseline;
+    }
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Variables de configuración globales inyectadas o calculadas
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'auditoria-roster-2026';
+    let db = null;
+    let auth = null;
+    let isFirebaseEnabled = false;
+
+    // Inicializar Firebase si el objeto de configuración está disponible
+    if (typeof __firebase_config !== 'undefined') {
+        try {
+            const firebaseConfig = JSON.parse(__firebase_config);
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            isFirebaseEnabled = true;
+        } catch (e) {
+            console.error("Fallo al inicializar Firebase. Modo demo local activado.", e);
+        }
+    }
+
+    // Proceso de autenticación robusto (Priorizando Custom Token sobre Anónimo)
+    async function initAuth() {
+        if (!isFirebaseEnabled) return null;
+        try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                return await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                return await signInAnonymously(auth);
+            }
+        } catch (error) {
+            console.error("Error en la autenticación de Firebase:", error);
+            return null;
+        }
+    }
+
+    // Cargar la planificación desde Firestore o crear la predeterminada si no existe
+    async function loadRosterFromCloud(monthKey) {
+        if (!isFirebaseEnabled || !db || !auth.currentUser) {
+            // Fallback a memoria local de la sesión si Firebase no está activo
+            if (!rosterState[monthKey]) {
+                if (monthKey === "2026-06") {
+                    rosterState[monthKey] = JSON.parse(JSON.stringify(originalPersonalData));
+                } else {
+                    rosterState[monthKey] = generateBaselineForMonth(monthKey);
+                }
+            }
+            updateCloudStatusUI("local");
+            return rosterState[monthKey];
+        }
+
+        updateCloudStatusUI("loading");
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rosters', monthKey);
+        
+        try {
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const cloudData = docSnap.data();
+                rosterState[monthKey] = cloudData.employees;
+                updateCloudStatusUI("synced");
+                return cloudData.employees;
+            } else {
+                // Si el documento no existe en la nube, guardamos la base por defecto inmediatamente
+                const defaultData = monthKey === "2026-06" 
+                    ? JSON.parse(JSON.stringify(originalPersonalData)) 
+                    : generateBaselineForMonth(monthKey);
+                
+                await setDoc(docRef, { employees: defaultData });
+                rosterState[monthKey] = defaultData;
+                updateCloudStatusUI("synced");
+                return defaultData;
+            }
+        } catch (error) {
+            console.error("Error cargando desde la nube, activando fallback local:", error);
+            showToast("Error de conexión a la nube. Cambios temporales en memoria.", "warning");
+            updateCloudStatusUI("error");
+            if (!rosterState[monthKey]) {
+                rosterState[monthKey] = monthKey === "2026-06" 
+                    ? JSON.parse(JSON.stringify(originalPersonalData)) 
+                    : generateBaselineForMonth(monthKey);
+            }
+            return rosterState[monthKey];
+        }
+    }
+
+    // Guardar cambios directamente en el documento correspondiente en Firestore
+    async function saveRosterToCloud(monthKey, data) {
+        if (!isFirebaseEnabled || !db || !auth.currentUser) {
+            rosterState[monthKey] = data;
+            showToast("Cambio guardado temporalmente (Sin conexión a la nube)", "warning");
+            return;
+        }
+
+        updateCloudStatusUI("saving");
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'rosters', monthKey);
+        
+        try {
+            await setDoc(docRef, { employees: data });
+            rosterState[monthKey] = data;
+            updateCloudStatusUI("synced");
+            showToast("Planificación guardada de forma segura en la nube.", "success");
+        } catch (error) {
+            console.error("Error al guardar planificación en la nube:", error);
+            showToast("Error de guardado en la nube. Reintentando...", "error");
+            updateCloudStatusUI("error");
+        }
+    }
+
+    // Expone las funciones de carga y guardado para que el script global pueda consumirlas
+    window.cloudStorage = {
+        loadRoster: loadRosterFromCloud,
+        saveRoster: saveRosterToCloud,
+        isCloudEnabled: () => isFirebaseEnabled
+    };
+
+    // Inicializador OnLoad unificado
+    window.addEventListener('load', async () => {
+        if (isFirebaseEnabled) {
+            const userCred = await initAuth();
+            if (userCred && userCred.user) {
+                currentUserId = userCred.user.uid;
+                document.getElementById('cloud-user-id').innerText = currentUserId;
+            }
+        } else {
+            document.getElementById('cloud-user-id').innerText = "Modo_Demo_Sin_Nube_Activa";
+        }
+
+        // Carga del mes inicial de junio
+        await window.cloudStorage.loadRoster(activeMonthKey);
+        
+        // Cargar primera vista e inicializar el sistema analítico
+        initAppInterface();
+    });
+</script>
+
+<div class="flex-1 flex flex-col h-full w-full">
+    
+    <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-col xl:flex-row justify-between items-center gap-4 sticky top-0 z-40 shadow-md">
+        <div class="flex items-center space-x-3 w-full xl:w-auto">
+            <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-indigo-500/20 shadow-lg">
+                <i data-lucide="shield-check" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-black tracking-tight flex items-center gap-2">
+                    Centro de Control & Auditoría <span class="text-indigo-400 font-normal">| Roster</span>
+                </h1>
+                <p class="text-xs text-slate-400 flex flex-wrap items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Sincronizado fielmente con <span class="font-mono-code text-indigo-300 font-bold bg-indigo-950/50 px-1 py-0.2 rounded text-[10px]">IMG-20260618-WA0000.jpg</span>
+                    <span class="text-slate-600">|</span>
+                    <span id="cloud-connection-badge" class="flex items-center gap-1 text-[10px] bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-slate-400">
+                        <span id="cloud-status-dot" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                        <span id="cloud-status-text">Detectando Nube...</span>
+                    </span>
+                </p>
+            </div>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
+            <!-- Selector Dinámico de Meses -->
+            <div class="flex items-center bg-slate-950 border border-slate-850 rounded-xl p-1">
+                <span class="text-[10px] text-indigo-400 font-extrabold uppercase px-2.5 tracking-wider">Período:</span>
+                <select id="select-active-month" onchange="changeActiveMonth(this.value)" class="bg-slate-900 text-xs text-slate-100 font-bold py-1.5 px-3 rounded-lg border-0 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer">
+                    <option value="2026-06">Junio 2026 (Original)</option>
+                    <option value="2026-07">Julio 2026</option>
+                    <option value="2026-08">Agosto 2026</option>
+                    <option value="2026-09">Septiembre 2026</option>
+                    <option value="2026-10">Octubre 2026</option>
+                    <option value="2026-11">Noviembre 2026</option>
+                    <option value="2026-12">Diciembre 2026</option>
+                </select>
+            </div>
+
+            <!-- Botón Filtro / Modificar Roster (Ubicado a la izquierda de la vista completa) -->
+            <button onclick="openEditModal()" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-xl text-xs font-bold transition-all shadow-lg flex items-center gap-2">
+                <i data-lucide="sliders" class="w-4 h-4"></i> Editar Planificación
+            </button>
+
+            <!-- Botón de Importación Inteligente -->
+            <button onclick="openImportModal()" class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-500 hover:from-indigo-500 hover:to-violet-400 text-white rounded-xl text-xs font-bold transition-all shadow-lg flex items-center gap-2">
+                <i data-lucide="upload-cloud" class="w-4 h-4"></i> Importar Planilla
+            </button>
+
+            <button onclick="toggleVisualMode('gantt')" id="btn-mode-gantt" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2">
+                <i data-lucide="table" class="w-4 h-4"></i> Vista de Roster Completo
+            </button>
+            <button onclick="toggleVisualMode('metrics')" id="btn-mode-metrics" class="px-4 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-xl text-xs font-semibold transition-all flex items-center gap-2">
+                <i data-lucide="bar-chart-2" class="w-4 h-4"></i> Dashboard & Métricas
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto">
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                <div class="space-y-1">
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Falta de Cobertura</p>
+                    <p id="kpi-empty-shifts" class="text-3xl font-black text-rose-500 font-mono-code">--</p>
+                    <p class="text-[10px] text-rose-400/80">Turnos diarios con 0 personas</p>
+                </div>
+                <div class="p-3 bg-rose-500/10 text-rose-400 rounded-xl">
+                    <i data-lucide="user-minus" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                <div class="space-y-1">
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Saturación Operativa</p>
+                    <p id="kpi-saturated-shifts" class="text-3xl font-black text-amber-500 font-mono-code">--</p>
+                    <p class="text-[10px] text-amber-400/80">Turnos con más de 2 personas</p>
+                </div>
+                <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
+                    <i data-lucide="users" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                <div class="space-y-1">
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Horas Planificadas</p>
+                    <p id="kpi-total-scheduled" class="text-3xl font-black text-indigo-400 font-mono-code">--</p>
+                    <p id="kpi-total-scheduled-sub" class="text-[10px] text-slate-400">Total calculado del mes</p>
+                </div>
+                <div class="p-3 bg-indigo-500/10 text-indigo-400 rounded-xl">
+                    <i data-lucide="clock" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                <div class="space-y-1">
+                    <p class="text-xs font-medium text-slate-400 uppercase tracking-wider">Desviación Neta</p>
+                    <p id="kpi-net-deviation" class="text-3xl font-black font-mono-code text-emerald-400">--</p>
+                    <p id="kpi-deviation-sub" class="text-[10px] text-slate-400">Vs horas de contrato</p>
+                </div>
+                <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
+                    <i data-lucide="scale" class="w-6 h-6"></i>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-gantt-container" class="space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-4">
+                    <div>
+                        <h2 class="text-base font-extrabold flex items-center gap-2 text-slate-200">
+                            <i data-lucide="calendar" class="w-5 h-5 text-indigo-400"></i> Planilla de Turnos - <span id="label-active-month">Junio 2026</span>
+                        </h2>
+                        <p class="text-xs text-slate-400">Auditoría y edición integrada de la malla horaria. Cualquier modificación se guarda automáticamente de forma segura en tiempo real.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 text-[10px]">
+                        <span class="flex items-center gap-1 bg-sky-950/60 text-sky-300 border border-sky-800 px-2.5 py-1 rounded-md">
+                            <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> Mañana (M)
+                        </span>
+                        <span class="flex items-center gap-1 bg-amber-950/60 text-amber-300 border border-amber-800 px-2.5 py-1 rounded-md">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Tarde (T)
+                        </span>
+                        <span class="flex items-center gap-1 bg-purple-950/60 text-purple-300 border border-purple-850 px-2.5 py-1 rounded-md">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span> Noche (N)
+                        </span>
+                        <span class="flex items-center gap-1 bg-slate-800/80 text-slate-400 px-2.5 py-1 rounded-md">
+                            Libre / Descanso
+                        </span>
+                        <span class="flex items-center gap-1 bg-slate-950 border border-slate-800 text-slate-400 px-2.5 py-1 rounded-md font-bold">
+                            FDS (Fines de Semana)
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Contenedor Responsive de la Tabla de Roster -->
+                <div class="overflow-x-auto border border-slate-800/80 rounded-xl">
+                    <table class="w-full text-left border-collapse select-none min-w-[1200px]">
+                        <thead>
+                            <tr id="roster-grid-header" class="bg-slate-950/80 text-slate-300 text-[11px] uppercase tracking-wider border-b border-slate-800">
+                                <!-- Generado dinámicamente -->
+                            </tr>
+                        </thead>
+                        <tbody id="roster-grid-body">
+                            <!-- Los registros se cargan de forma dinámica -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500 gap-2">
+                    <span>* Las celdas con bordes naranja brillante representan turnos destacados del archivo IMG-20260618-WA0000.jpg.</span>
+                    <span>Modo rápido: Haz clic en cualquier celda para seleccionarla, auditarla o editarla.</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-metrics-container" class="space-y-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Gráfico de Cobertura -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg lg:col-span-2">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 class="text-sm font-extrabold text-slate-200 uppercase tracking-wider">Densidad Operativa de Turnos Diarios</h2>
+                            <p class="text-xs text-slate-400">Monitoreo de cantidad de personas asignadas a cada turno para el mes seleccionado.</p>
+                        </div>
+                        <span id="label-metrics-month" class="text-[10px] bg-indigo-950 text-indigo-400 border border-indigo-800/50 px-2.5 py-1 rounded-full font-bold">Junio 2026</span>
+                    </div>
+                    <div class="h-64 relative w-full">
+                        <canvas id="chart-coverage-density"></canvas>
+                    </div>
+                </div>
+
+                <!-- Distribución General de Turnos -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+                    <div>
+                        <h2 class="text-sm font-extrabold text-slate-200 uppercase tracking-wider mb-2">Resumen Total de Jornadas</h2>
+                        <p class="text-xs text-slate-400 mb-4">Proporción general de turnos distribuidos en el mes.</p>
+                        <div class="h-44 relative flex items-center justify-center">
+                            <canvas id="chart-turn-distribution"></canvas>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs pt-4 border-t border-slate-800">
+                        <div>
+                            <span class="block text-[10px] text-sky-400 font-bold uppercase">M (Mañana)</span>
+                            <span id="dist-m" class="text-sm font-bold text-slate-200">--</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] text-amber-400 font-bold uppercase">T (Tarde)</span>
+                            <span id="dist-t" class="text-sm font-bold text-slate-200">--</span>
+                        </div>
+                        <div>
+                            <span class="block text-[10px] text-purple-400 font-bold uppercase">N (Noche)</span>
+                            <span id="dist-n" class="text-sm font-bold text-slate-200">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Inferior: Auditoría Operativa de Alertas -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Auditor de Anomalías Diarias -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl lg:col-span-1 flex flex-col">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="bell-ring" class="w-4 h-4 text-indigo-400"></i> Alertas de Cobertura Diaria
+                        </h3>
+                        <p class="text-[11px] text-slate-400">Días que incumplen cobertura mínima o tienen sobrepoblación</p>
+                    </div>
+                    <span id="alert-badge" class="bg-rose-950 text-rose-400 border border-rose-800 text-[10px] px-2 py-0.5 rounded-full font-bold">Activo</span>
+                </div>
+                
+                <div id="critical-days-list" class="flex-1 space-y-2 max-h-[350px] overflow-y-auto pr-1">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+
+            <!-- Inspector de Día Seleccionado -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl lg:col-span-1">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="search" class="w-4 h-4 text-indigo-400"></i> Auditoría Detallada por Día
+                        </h3>
+                        <p class="text-[11px] text-slate-400">Selecciona cualquier día de la planilla para inspeccionar</p>
+                    </div>
+                    <span id="audit-day-badge" class="text-xs bg-indigo-950 text-indigo-400 border border-indigo-800/50 px-2.5 py-1 rounded-xl font-mono-code">Día 1</span>
+                </div>
+
+                <div class="space-y-4">
+                    <div id="audit-day-shifts" class="space-y-3">
+                        <!-- Dinámico -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visor de Perfil de Colaborador -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl lg:col-span-1">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="user" class="w-4 h-4 text-indigo-400"></i> Auditoría Individual
+                        </h3>
+                        <p class="text-[11px] text-slate-400">Resumen operativo y cumplimiento del empleado</p>
+                    </div>
+                    <span id="colaborador-selector-container">
+                        <select id="select-active-colaborador" onchange="loadEmployeeAudit(this.value)" class="bg-slate-950 text-xs border border-slate-800 rounded-lg p-1.5 text-indigo-300 font-medium focus:outline-none focus:border-indigo-500">
+                            <!-- Opciones cargadas dinámicamente -->
+                        </select>
+                    </span>
+                </div>
+
+                <div id="profile-audit-card" class="space-y-4">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="edit-shift-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all transform scale-95 opacity-0 duration-300" id="edit-modal-content">
+            
+            <div class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="bg-emerald-500/10 text-emerald-400 p-2 rounded-lg">
+                        <i data-lucide="edit-3" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-200 uppercase">Editar Planificación de Turno</h3>
+                        <p class="text-[10px] text-slate-400">Los cambios se guardarán automáticamente en la base de datos de la nube</p>
+                    </div>
+                </div>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-lg font-bold p-1">&times;</button>
+            </div>
+
+            <!-- Cuerpo del Formulario de Edición -->
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Colaborador</label>
+                        <select id="modal-select-employee" onchange="updateModalFields()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
+                            <!-- Se puebla dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Día del Mes</label>
+                        <select id="modal-select-day" onchange="updateModalFields()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
+                            <!-- Se puebla dinámicamente -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Turno</label>
+                        <select id="modal-select-shift" onchange="onModalShiftChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer">
+                            <option value="">Libre / Descanso</option>
+                            <option value="M">Mañana (M)</option>
+                            <option value="T">Tarde (T)</option>
+                            <option value="N">Noche (N)</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5" id="modal-range-container">
+                        <label class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Rango Horario</label>
+                        <input type="text" id="modal-input-range" placeholder="Ej: 07:00-16:00" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500 font-mono-code">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer con Botones de Control -->
+            <div class="bg-slate-950 border-t border-slate-800 px-6 py-4 flex items-center justify-end gap-3">
+                <button onclick="closeEditModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-all">
+                    Cancelar
+                </button>
+                <button onclick="saveShiftModification()" class="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5">
+                    <i data-lucide="check" class="w-4 h-4"></i> Guardar Cambios
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal de Importación Avanzada con IA o CSV -->
+    <div id="import-shift-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4 animate-fade-in">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col transition-all transform scale-95 opacity-0 duration-300" id="import-modal-content">
+            
+            <div class="bg-slate-950 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="bg-indigo-500/10 text-indigo-400 p-2 rounded-lg">
+                        <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-200 uppercase">Importar Planilla de Turnos</h3>
+                        <p class="text-[10px] text-slate-400">Actualiza la malla horaria mediante IA Visión o archivos Excel estructurados</p>
+                    </div>
+                </div>
+                <button onclick="closeImportModal()" class="text-slate-400 hover:text-white text-lg font-bold p-1">&times;</button>
+            </div>
+
+            <!-- Selectores de Pestañas de Importación -->
+            <div class="flex border-b border-slate-800 bg-slate-950/40">
+                <button onclick="switchImportTab('ai')" id="tab-import-ai" class="flex-1 py-3 text-xs font-bold border-b-2 border-indigo-500 text-indigo-400 transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="brain" class="w-4 h-4"></i> IA Gemini Visión (Foto)
+                </button>
+                <button onclick="switchImportTab('csv')" id="tab-import-csv" class="flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Cargar Excel / CSV
+                </button>
+            </div>
+
+            <!-- Cuerpo de Pestaña IA -->
+            <div id="panel-import-ai" class="p-6 space-y-4">
+                <div class="bg-indigo-950/20 border border-indigo-900/40 p-3 rounded-xl text-xs text-indigo-300 leading-relaxed space-y-1">
+                    <p class="font-bold flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Procesamiento con IA de Alta Fidelidad</p>
+                    <p class="opacity-80">Sube una foto legible o captura del Roster mensual. Nuestra Inteligencia Artificial interpretará los turnos (M, T, N, Libres), horarios de entrada/salida y nombres de colaboradores automáticamente.</p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex justify-between">
+                        <span>Clave API de Gemini (Opcional)</span>
+                        <a href="https://aistudio.google.com/" target="_blank" class="text-indigo-400 hover:underline text-[10px]">Obtener clave gratis</a>
+                    </label>
+                    <input type="password" id="import-api-key" placeholder="Pega tu API Key de Gemini para procesamiento ilimitado (dejar en blanco para clave de prueba)" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-mono-code">
+                </div>
+
+                <div class="border-2 border-dashed border-slate-800 rounded-2xl p-6 text-center hover:border-indigo-500/50 transition-all cursor-pointer relative" id="drop-area-ai">
+                    <input type="file" id="file-import-ai" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewImportImage(event)">
+                    <div class="space-y-2 pointer-events-none" id="ai-upload-placeholder">
+                        <i data-lucide="image" class="w-10 h-10 text-slate-500 mx-auto"></i>
+                        <p class="text-xs font-bold text-slate-300">Arrastra una imagen o haz clic para seleccionar</p>
+                        <p class="text-[10px] text-slate-500">Soporta formatos JPG, PNG, WEBP (Ej: captura de IMG-20260618-WA0000.jpg)</p>
+                    </div>
+                    <div id="ai-image-preview-container" class="hidden space-y-3">
+                        <img id="ai-image-preview" class="max-h-40 mx-auto rounded-xl border border-slate-700 shadow-md">
+                        <p class="text-[11px] text-indigo-400 font-bold" id="ai-image-name">Archivo seleccionado</p>
+                    </div>
+                </div>
+
+                <!-- Barra de Progreso del Procesamiento -->
+                <div id="ai-progress-container" class="hidden space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span id="ai-progress-status" class="text-indigo-400 font-bold flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span> Procesando con Inteligencia Artificial...
+                        </span>
+                        <span id="ai-progress-percent" class="font-mono-code font-bold">0%</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
+                        <div id="ai-progress-bar" class="w-0 h-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cuerpo de Pestaña CSV -->
+            <div id="panel-import-csv" class="p-6 space-y-4 hidden">
+                <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs text-slate-300 leading-relaxed">
+                    <p class="font-bold text-slate-200">Formato del Archivo CSV Compatible:</p>
+                    <p class="opacity-80 mt-1">El archivo debe contener cabeceras separadas por comas o punto y coma de la siguiente forma:</p>
+                    <p class="font-mono-code text-[10px] text-indigo-400 bg-slate-950 p-2 rounded mt-2 border border-slate-850 overflow-x-auto truncate">
+                        Colaborador,ID,Contrato,1,2,3,4,...,30
+                    </p>
+                    <div class="flex justify-between items-center mt-3">
+                        <span class="text-[10px] text-slate-500">* Ejemplo de turno: "M", "T", "N" o vacío para libre.</span>
+                        <button onclick="downloadCSVTemplate()" class="text-indigo-400 hover:underline font-bold text-[10px] flex items-center gap-1">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Descargar Plantilla
+                        </button>
+                    </div>
+                </div>
+
+                <div class="border-2 border-dashed border-slate-800 rounded-2xl p-8 text-center hover:border-emerald-500/50 transition-all cursor-pointer relative" id="drop-area-csv">
+                    <input type="file" id="file-import-csv" accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="processCSVFile(event)">
+                    <div class="space-y-2 pointer-events-none">
+                        <i data-lucide="file-spreadsheet" class="w-10 h-10 text-slate-500 mx-auto"></i>
+                        <p class="text-xs font-bold text-slate-300">Sube tu planilla de turnos mensual (.csv)</p>
+                        <p class="text-[10px] text-slate-500">Arrastra tu archivo aquí o haz clic para examinar</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer del Modal -->
+            <div class="bg-slate-950 border-t border-slate-800 px-6 py-4 flex items-center justify-between">
+                <p class="text-[10px] text-rose-400 flex items-center gap-1 leading-none">
+                    <i data-lucide="info" class="w-3.5 h-3.5 shrink-0"></i>
+                    La importación reemplazará los datos del mes actual (${monthsConfig[activeMonthKey]?.name || 'Seleccionado'}).
+                </p>
+                <div class="flex items-center gap-3">
+                    <button onclick="closeImportModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition-all">
+                        Cancelar
+                    </button>
+                    <button id="btn-submit-ai-import" onclick="executeAIImageImport()" class="px-5 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5">
+                        <i data-lucide="wand-2" class="w-4 h-4"></i> Iniciar Análisis IA
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="bg-slate-900/60 border-t border-slate-800/80 px-6 py-4 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-3">
+        <p>© 2026 • Plataforma de Auditoría de Planilla de Turnos Multimedia — Sincronización Web de Alta Fidelidad</p>
+        <p class="flex flex-wrap items-center gap-2 text-[11px] bg-slate-950 text-slate-400 px-3 py-1 rounded-lg border border-slate-850">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+            <span>ID Sesión: <span id="cloud-user-id" class="font-mono-code text-[10px] text-indigo-300">Iniciando...</span></span>
+        </p>
+    </footer>
+</div>
+
+<!-- Contenedor flotante de notificaciones/Toasts -->
+<div id="toast-container" class="fixed bottom-6 right-6 z-50 pointer-events-none space-y-2 max-w-sm"></div>
+
+<script>
+    // Variables globales de la interfaz
+    let computedDays = {};
+    let chartCoverageDensityInstance = null;
+    let chartTurnDistributionInstance = null;
+    let activeVisualMode = 'gantt'; 
+    let selectedAuditDay = 1;
+
+    // Estado del importador
+    let activeImportTab = 'ai';
+    let base64ImageToProcess = null;
+
+    // Controladores de apertura y cierre del Modal de Importación
+    function openImportModal() {
+        const modal = document.getElementById('import-shift-modal');
+        const modalContent = document.getElementById('import-modal-content');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+        
+        switchImportTab('ai');
+        resetAIProgress();
+        lucide.createIcons();
+    }
+
+    function closeImportModal() {
+        const modal = document.getElementById('import-shift-modal');
+        const modalContent = document.getElementById('import-modal-content');
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 200);
+    }
+
+    function switchImportTab(tabName) {
+        activeImportTab = tabName;
+        const btnAI = document.getElementById('tab-import-ai');
+        const btnCSV = document.getElementById('tab-import-csv');
+        const panelAI = document.getElementById('panel-import-ai');
+        const panelCSV = document.getElementById('panel-import-csv');
+        const btnSubmit = document.getElementById('btn-submit-ai-import');
+
+        if (tabName === 'ai') {
+            btnAI.className = "flex-1 py-3 text-xs font-bold border-b-2 border-indigo-500 text-indigo-400 transition-all flex items-center justify-center gap-2";
+            btnCSV.className = "flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-2";
+            panelAI.classList.remove('hidden');
+            panelCSV.classList.add('hidden');
+            btnSubmit.classList.remove('hidden');
+        } else {
+            btnCSV.className = "flex-1 py-3 text-xs font-bold border-b-2 border-emerald-500 text-emerald-400 transition-all flex items-center justify-center gap-2";
+            btnAI.className = "flex-1 py-3 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all flex items-center justify-center gap-2";
+            panelCSV.classList.remove('hidden');
+            panelAI.classList.add('hidden');
+            btnSubmit.classList.add('hidden');
+        }
+    }
+
+    // Previsualización y carga del archivo de imagen
+    function previewImportImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            base64ImageToProcess = e.target.result.split(',')[1]; // Extraer solo la data base64 pura
+            
+            document.getElementById('ai-image-preview').src = e.target.result;
+            document.getElementById('ai-image-preview-container').classList.remove('hidden');
+            document.getElementById('ai-upload-placeholder').classList.add('hidden');
+            document.getElementById('ai-image-name').innerText = `Roster Cargado: ${file.name}`;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function resetAIProgress() {
+        base64ImageToProcess = null;
+        document.getElementById('ai-image-preview-container').classList.add('hidden');
+        document.getElementById('ai-upload-placeholder').classList.remove('hidden');
+        document.getElementById('ai-progress-container').classList.add('hidden');
+        document.getElementById('file-import-ai').value = '';
+        
+        const progressBar = document.getElementById('ai-progress-bar');
+        progressBar.style.width = '0%';
+        document.getElementById('ai-progress-percent').innerText = '0%';
+    }
+
+    function updateProgressBar(percent, statusText) {
+        document.getElementById('ai-progress-container').classList.remove('hidden');
+        document.getElementById('ai-progress-bar').style.width = `${percent}%`;
+        document.getElementById('ai-progress-percent').innerText = `${percent}%`;
+        document.getElementById('ai-progress-status').innerText = statusText;
+    }
+
+    // Ejecución del importador inteligente por IA de Visión
+    async function executeAIImageImport() {
+        if (!base64ImageToProcess) {
+            showToast("Por favor, selecciona una imagen de Roster antes de proceder.", "warning");
+            return;
+        }
+
+        const customApiKey = document.getElementById('import-api-key').value.trim();
+        // Si no ingresan API Key, dejamos el string vacío para que el backend/canvas inyecte la llave del entorno.
+        const apiKey = customApiKey; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+        updateProgressBar(15, "Estableciendo conexión y validando parámetros...");
+
+        const systemPrompt = "Eres un sistema experto en auditoría multimedia y extracción de datos estructurados para planillas de turnos de salud y operaciones. Debes extraer con fidelidad extrema el roster del mes, identificando empleados, horas de contrato, turnos de cada día de la planilla (M, T, N o vacío para libres) y los rangos de horas detallados.";
+        
+        const userPrompt = `Analiza detalladamente la planilla de turnos de la imagen adjunta. 
+        Reconoce a cada colaborador, su ID/RUT oficial, sus horas asignadas por contrato y mapea los turnos del día 1 al día 30 del mes actual.
+        Genera un JSON perfectamente estructurado acorde al esquema solicitado.
+
+        Reglas operativas para los turnos y sus rangos de horas:
+        - Si el turno es de Mañana ("M"), el rango horario por defecto es "07:00-16:00" o similar según se lea en la imagen.
+        - Si es Tarde ("T"), el rango horario es "14:00-23:00".
+        - Si es Noche ("N"), el rango es "22:00-08:00" u "18:00-06:00".
+        - Para días libres, deja el turno en blanco ("") y no agregues horario.
+
+        Asegúrate de procesar con precisión para evitar desfases operacionales.`;
+
+        // Estructura de esquema JSON esperado
+        const payload = {
+            contents: [
+                {
+                    role: "user",
+                    parts: [
+                        { text: userPrompt },
+                        {
+                            inlineData: {
+                                mimeType: "image/png",
+                                data: base64ImageToProcess
+                            }
+                        }
+                    ]
+                }
+            ],
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "OBJECT",
+                    properties: {
+                        employees: {
+                            type: "ARRAY",
+                            items: {
+                                type: "OBJECT",
+                                properties: {
+                                    id: { "type": "STRING", "description": "RUT o número identificador único de la persona" },
+                                    nombre: { "type": "STRING", "description": "Nombre completo del colaborador" },
+                                    horasContrato: { "type": "NUMBER", "description": "Total de horas estipuladas de contrato del empleado" },
+                                    turnos: {
+                                        type: "OBJECT",
+                                        description: "Mapa donde las claves son días del 1 al 30 (strings) y el valor es el turno asignado: 'M', 'T', 'N' o ''"
+                                    },
+                                    horasDetalle: {
+                                        type: "OBJECT",
+                                        description: "Mapa donde las claves son días (strings) y los valores son rangos de horas: e.g. '07:00-16:00' o ''"
+                                    }
+                                },
+                                "required": ["id", "nombre", "horasContrato", "turnos", "horasDetalle"]
+                            }
+                        }
+                    },
+                    "required": ["employees"]
+                }
+            },
+            systemInstruction: {
+                parts: [{ text: systemPrompt }]
+            }
+        };
+
+        try {
+            updateProgressBar(45, "Enviando imagen a Gemini Visión e interpretando celdas...");
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error en el servidor de IA: ${response.status} ${response.statusText}`);
+            }
+
+            updateProgressBar(80, "Procesando respuesta estructurada de IA...");
+            const result = await response.json();
+            
+            const candidate = result.candidates?.[0];
+            const responseText = candidate?.content?.parts?.[0]?.text;
+
+            if (responseText) {
+                const parsedData = JSON.parse(responseText);
+                if (parsedData.employees && parsedData.employees.length > 0) {
+                    
+                    // Aplicar estilos de avatar y colores aleatorios consistentes para la visualización web
+                    parsedData.employees.forEach((emp, idx) => {
+                        emp.avatar = emp.nombre ? emp.nombre.split(" ").map(n => n[0]).join("").substr(0, 2).toUpperCase() : `C${idx}`;
+                        emp.color = getPresetColorByIdx(idx);
+                    });
+
+                    // Reemplazar estado del mes seleccionado
+                    rosterState[activeMonthKey] = parsedData.employees;
+
+                    // Si hay conexión activa de Firebase, lo guardamos directamente
+                    if (window.cloudStorage) {
+                        await window.cloudStorage.saveRoster(activeMonthKey, parsedData.employees);
+                    }
+
+                    updateProgressBar(100, "¡Importación de Roster Completada!");
+                    showToast("La IA ha importado y estructurado los turnos del Roster de forma exitosa.", "success");
+                    
+                    setTimeout(() => {
+                        closeImportModal();
+                        recalculateAndReloadAll();
+                    }, 1000);
+                } else {
+                    throw new Error("La IA no devolvió registros de empleados estructurados.");
+                }
+            } else {
+                throw new Error("No se obtuvo respuesta procesable de los modelos de Gemini.");
+            }
+
+        } catch (error) {
+            console.error("Fallo durante la importación inteligente por IA:", error);
+            updateProgressBar(0, "Error en procesamiento");
+            showToast(`Error al procesar: ${error.message}. Verifica que la API Key sea correcta o intenta nuevamente.`, "error");
+        }
+    }
+
+    function getPresetColorByIdx(idx) {
+        const colors = [
+            "from-indigo-500 to-purple-600",
+            "from-sky-500 to-blue-600",
+            "from-teal-500 to-emerald-600",
+            "from-amber-500 to-orange-600",
+            "from-rose-500 to-pink-600",
+            "from-fuchsia-500 to-purple-700",
+            "from-cyan-500 to-blue-600",
+            "from-violet-500 to-purple-600",
+            "from-emerald-500 to-green-600"
+        ];
+        return colors[idx % colors.length];
+    }
+
+    // Procesamiento e Importación de archivo CSV estructurado
+    function processCSVFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const text = e.target.result;
+                const parsedEmployees = parseCSVToRoster(text);
+                
+                if (parsedEmployees.length === 0) {
+                    throw new Error("No se pudieron extraer registros válidos del archivo CSV.");
+                }
+
+                // Guardar en la estructura principal del mes seleccionado
+                rosterState[activeMonthKey] = parsedEmployees;
+
+                if (window.cloudStorage) {
+                    await window.cloudStorage.saveRoster(activeMonthKey, parsedEmployees);
+                }
+
+                showToast(`Se han importado ${parsedEmployees.length} colaboradores desde el archivo CSV.`, "success");
+                closeImportModal();
+                recalculateAndReloadAll();
+
+            } catch (err) {
+                console.error("Error al procesar archivo CSV:", err);
+                showToast(`Fallo de formato: ${err.message}`, "error");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // Convertir de formato CSV a los objetos requeridos por la base de datos
+    function parseCSVToRoster(text) {
+        const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
+        if (lines.length < 2) {
+            throw new Error("El archivo está vacío o no contiene suficientes filas.");
+        }
+
+        const delimiter = lines[0].includes(";") ? ";" : ",";
+        const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^"|"$/g, ''));
+        
+        const employees = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            const cols = lines[i].split(delimiter).map(c => c.trim().replace(/^"|"$/g, ''));
+            if (cols.length < 3) continue;
+
+            const nombre = cols[0];
+            const id = cols[1];
+            const horasContrato = parseFloat(cols[2]) || 180;
+
+            const turnos = {};
+            const horasDetalle = {};
+
+            // Mapear los días laborables a partir de la columna número 4
+            for (let d = 1; d <= 31; d++) {
+                const colIdx = 2 + d;
+                if (colIdx >= cols.length) break;
+
+                const val = cols[colIdx].toUpperCase();
+                if (!val) continue;
+
+                let shiftType = "";
+                let timeRange = "";
+
+                if (val.startsWith("M")) {
+                    shiftType = "M";
+                    timeRange = "07:00-16:00";
+                } else if (val.startsWith("T")) {
+                    shiftType = "T";
+                    timeRange = "14:00-23:00";
+                } else if (val.startsWith("N")) {
+                    shiftType = "N";
+                    timeRange = "22:00-08:00";
+                }
+
+                if (shiftType) {
+                    turnos[d] = shiftType;
+                    horasDetalle[d] = timeRange;
+                }
+            }
+
+            employees.push({
+                id: id || `ID-${Math.floor(Math.random() * 10000000)}`,
+                nombre: nombre || `Colaborador Desconocido ${i}`,
+                horasContrato: horasContrato,
+                avatar: nombre ? nombre.split(" ").map(n => n[0]).join("").substr(0, 2).toUpperCase() : `C${i}`,
+                color: getPresetColorByIdx(i),
+                turnos: turnos,
+                horasDetalle: horasDetalle
+            });
+        }
+
+        return employees;
+    }
+
+    // Descargar plantilla CSV de muestra para que el usuario la rellene en Excel
+    function downloadCSVTemplate() {
+        let csvContent = "Colaborador,ID,Contrato,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30\n";
+        csvContent += "Gaston Genaro Flores Hernandez,30038070,188,M,,M,T,N,,,,M,M,,T,T,,M,,,,,,M,M,N,N,N,,\n";
+        csvContent += "Gonzalez Vergara Jose Antonio,30050488,172,,T,T,T,T,T,,,,N,N,N,,,,,,M,M,M,,,T,T,,T,T,\n";
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "plantilla_roster_turnos.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // Obtener los datos del roster activo de la memoria local
+    function getActiveRoster() {
+        return rosterState[activeMonthKey];
+    }
+
+    // Calcula si un día es fin de semana según la configuración
+    function isWeekend(day, monthKey = activeMonthKey) {
+        const config = monthsConfig[monthKey];
+        const adjustedDayOfWeek = (config.startDayOfWeek - 1 + (day - 1)) % 7 + 1;
+        return adjustedDayOfWeek === 6 || adjustedDayOfWeek === 7; 
+    }
+
+    // Actualiza el indicador visual de conexión a la base de datos
+    function updateCloudStatusUI(status) {
+        const dot = document.getElementById('cloud-status-dot');
+        const text = document.getElementById('cloud-status-text');
+        
+        if (status === "synced") {
+            dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]";
+            text.innerText = "Nube Sincronizada";
+        } else if (status === "saving") {
+            dot.className = "w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse";
+            text.innerText = "Guardando en la Nube...";
+        } else if (status === "loading") {
+            dot.className = "w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse";
+            text.innerText = "Sincronizando Mallas...";
+        } else if (status === "error") {
+            dot.className = "w-1.5 h-1.5 rounded-full bg-rose-500";
+            text.innerText = "Error de Red (Fallback)";
+        } else {
+            dot.className = "w-1.5 h-1.5 rounded-full bg-slate-500";
+            text.innerText = "Modo Demo Local";
+        }
+    }
+
+    // Procesa la planilla para auditar coberturas, vacíos y calcular horas planificadas
+    function processAndAuditRoster() {
+        const activeConfig = monthsConfig[activeMonthKey];
+        const activeRoster = getActiveRoster();
+        computedDays = {};
+
+        // Inicializar los días del mes seleccionado
+        for (let d = 1; d <= activeConfig.days; d++) {
+            computedDays[d] = {
+                day: d,
+                M: [], 
+                T: [], 
+                N: [], 
+                coberturaCritica: false,
+                sobrepoblado: false,
+                isWeekend: isWeekend(d)
+            };
+        }
+
+        // Mapear turnos y calcular acumulados de horas por colaborador
+        activeRoster.forEach(p => {
+            let totalHours = 0;
+            
+            Object.keys(p.turnos).forEach(dayStr => {
+                const day = parseInt(dayStr);
+                if (day > activeConfig.days) return;
+
+                const shiftType = p.turnos[day];
+                const shiftHoursStr = p.horasDetalle[day] || "";
+                
+                const shiftDuration = calculateShiftHours(shiftHoursStr);
+                totalHours += shiftDuration;
+
+                if (computedDays[day] && shiftType) {
+                    computedDays[day][shiftType].push({
+                        id: p.id,
+                        nombre: p.nombre,
+                        avatar: p.avatar,
+                        detalle: shiftHoursStr,
+                        horas: shiftDuration,
+                        color: p.color
+                    });
+                }
+            });
+
+            p.horasPlanificadasCalculadas = totalHours;
+        });
+
+        // Auditar días (Alertas de Cobertura Mínima y Sobrepoblación)
+        for (let d = 1; d <= activeConfig.days; d++) {
+            const dayObj = computedDays[d];
+            
+            // Si al menos un turno se queda sin personal
+            if (dayObj.M.length === 0 || dayObj.T.length === 0 || dayObj.N.length === 0) {
+                dayObj.coberturaCritica = true;
+            }
+
+            // Si hay más de 2 personas en un mismo turno un mismo día
+            if (dayObj.M.length > 2 || dayObj.T.length > 2 || dayObj.N.length > 2) {
+                dayObj.sobrepoblado = true;
+            }
+        }
+    }
+
+    // Calcula de forma precisa el total de horas de un turno
+    function calculateShiftHours(rangeString) {
+        if (!rangeString) return 0;
+        const parts = rangeString.split('-');
+        if (parts.length !== 2) return 0;
+
+        const [startHour, startMin] = parts[0].split(':').map(Number);
+        const [endHour, endMin] = parts[1].split(':').map(Number);
+
+        let startMinutes = startHour * 60 + startMin;
+        let endMinutes = endHour * 60 + endMin;
+
+        // Si la hora de término es menor o igual a la de inicio, pertenece al día siguiente (Turno de Noche)
+        if (endMinutes <= startMinutes) {
+            endMinutes += 24 * 60;
+        }
+
+        return (endMinutes - startMinutes) / 60;
+    }
+
+    // Cambia de mes y descarga datos persistentes de la nube
+    async function changeActiveMonth(monthKey) {
+        activeMonthKey = monthKey;
+        const config = monthsConfig[monthKey];
+
+        document.getElementById('label-active-month').innerText = config.name;
+        document.getElementById('label-metrics-month').innerText = config.name;
+
+        if (selectedAuditDay > config.days) {
+            selectedAuditDay = 1;
+        }
+
+        // Descargar mallas de la nube para el mes seleccionado
+        if (window.cloudStorage) {
+            await window.cloudStorage.loadRoster(monthKey);
+        }
+
+        recalculateAndReloadAll();
+        showToast(`Cargado período: ${config.name}`, "info");
+    }
+
+    function recalculateAndReloadAll() {
+        processAndAuditRoster();
+        renderRosterTable();
+        renderAlertsPanel();
+        renderDayInspection(selectedAuditDay);
+        
+        // Mantener el colaborador seleccionado en auditoría individual
+        const activeColSelector = document.getElementById('select-active-colaborador');
+        if (activeColSelector && activeColSelector.value) {
+            loadEmployeeAudit(activeColSelector.value);
+        } else {
+            loadEmployeeAudit(0);
+        }
+
+        computeTopKPIs();
+
+        if (activeVisualMode === 'metrics') {
+            initializeCharts();
+        }
+    }
+
+    // Inicializador unificado de la interfaz
+    function initAppInterface() {
+        lucide.createIcons();
+
+        // Poblar el selector de colaboradores
+        const selectColaborador = document.getElementById('select-active-colaborador');
+        selectColaborador.innerHTML = '';
+        getActiveRoster().forEach((p, idx) => {
+            const opt = document.createElement('option');
+            opt.value = idx;
+            opt.innerText = p.nombre;
+            selectColaborador.appendChild(opt);
+        });
+
+        document.getElementById('select-active-month').value = activeMonthKey;
+
+        recalculateAndReloadAll();
+        showToast("Roster auditado con éxito basado en IMG-20260618-WA0000.jpg", "info");
+    }
+
+    // Cambia la vista de visualización
+    function toggleVisualMode(mode) {
+        activeVisualMode = mode;
+        const btnGantt = document.getElementById('btn-mode-gantt');
+        const btnMetrics = document.getElementById('btn-mode-metrics');
+        
+        const viewGantt = document.getElementById('view-gantt-container');
+        const viewMetrics = document.getElementById('view-metrics-container');
+
+        if (mode === 'gantt') {
+            btnGantt.className = "px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2";
+            btnMetrics.className = "px-4 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-xl text-xs font-semibold transition-all flex items-center gap-2";
+            viewGantt.classList.remove('hidden');
+            viewMetrics.classList.add('hidden');
+        } else {
+            btnMetrics.className = "px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2";
+            btnGantt.className = "px-4 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-xl text-xs font-semibold transition-all flex items-center gap-2";
+            viewGantt.classList.add('hidden');
+            viewMetrics.classList.remove('hidden');
+            
+            setTimeout(initializeCharts, 50);
+        }
+    }
+
+    // Renderiza la tabla matricial Gantt interactiva
+    function renderRosterTable() {
+        const config = monthsConfig[activeMonthKey];
+        const activeRoster = getActiveRoster();
+        
+        const headerRow = document.getElementById('roster-grid-header');
+        let headerHtml = `
+            <th class="p-3 font-extrabold sticky left-0 bg-slate-950 z-20 w-[240px]">Colaborador</th>
+            <th class="p-3 text-center border-l border-slate-850 font-bold w-[70px]">Contrato</th>
+            <th class="p-3 text-center border-l border-slate-850 font-bold w-[70px]">Real</th>
+        `;
+        
+        for (let d = 1; d <= config.days; d++) {
+            const isFds = isWeekend(d);
+            const fdsStyle = isFds ? 'bg-slate-900/95 text-indigo-400 font-extrabold border-x border-slate-800' : 'text-slate-300';
+            headerHtml += `<th class="p-2 text-center border-l border-slate-850 text-[10px] w-[35px] ${fdsStyle}">${d}</th>`;
+        }
+        headerRow.innerHTML = headerHtml;
+
+        const tbody = document.getElementById('roster-grid-body');
+        tbody.innerHTML = '';
+
+        activeRoster.forEach((p, idx) => {
+            const variance = p.horasPlanificadasCalculadas - p.horasContrato;
+            const varianceBadgeClass = variance < 0 
+                ? 'text-rose-400 bg-rose-950/40 border-rose-900/30' 
+                : (variance === 0 ? 'text-emerald-400 bg-emerald-950/40 border-emerald-900/30' : 'text-indigo-400 bg-indigo-950/40 border-indigo-900/30');
+
+            let rowHtml = `
+                <tr class="hover:bg-slate-850/40 transition-colors border-b border-slate-850">
+                    <td class="p-3 sticky left-0 bg-slate-900 z-10 font-medium text-xs border-r border-slate-850 flex items-center gap-2.5 truncate max-w-[240px]">
+                        <span class="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-black bg-gradient-to-br ${p.color} text-white shadow shadow-indigo-950">
+                            ${p.avatar}
+                        </span>
+                        <div class="truncate">
+                            <p class="font-extrabold text-slate-200 truncate">${p.nombre}</p>
+                            <span class="font-mono-code text-[9px] text-slate-500 font-semibold">[ID: ${p.id}]</span>
+                        </div>
+                    </td>
+                    <td class="p-3 text-center border-r border-slate-850 font-mono-code text-xs font-bold text-slate-400">
+                        ${p.horasContrato.toFixed(2)}h
+                    </td>
+                    <td class="p-3 text-center border-r border-slate-850 font-mono-code text-xs">
+                        <span class="px-2 py-1 rounded-md border font-extrabold ${varianceBadgeClass}">
+                            ${p.horasPlanificadasCalculadas.toFixed(1)}h
+                        </span>
+                    </td>
+            `;
+
+            for (let d = 1; d <= config.days; d++) {
+                const shift = p.turnos[d];
+                const detail = p.horasDetalle[d] || "";
+                const isFds = isWeekend(d);
+
+                let cellClass = "p-1 text-center border-l border-slate-850 text-[10px] relative transition-transform hover:scale-105 cursor-pointer h-12 min-w-[40px] ";
+                let badgeHtml = "";
+
+                if (isFds) {
+                    cellClass += "bg-slate-950/35 ";
+                }
+
+                if (shift === 'M') {
+                    cellClass += "bg-sky-500/10 text-sky-300 font-bold hover:bg-sky-500/20";
+                    badgeHtml = `
+                        <div class="text-[9px] font-black">M</div>
+                        <div class="text-[8px] text-sky-400/70 font-normal scale-90 tracking-tighter leading-none">${detail.replace('-', '<br>')}</div>
+                    `;
+                } else if (shift === 'T') {
+                    cellClass += "bg-amber-500/10 text-amber-300 font-bold hover:bg-amber-500/20";
+                    badgeHtml = `
+                        <div class="text-[9px] font-black">T</div>
+                        <div class="text-[8px] text-amber-400/70 font-normal scale-90 tracking-tighter leading-none">${detail.replace('-', '<br>')}</div>
+                    `;
+                } else if (shift === 'N') {
+                    cellClass += "bg-purple-500/10 text-purple-300 font-bold hover:bg-purple-500/20";
+                    
+                    const isOrangeHighlight = activeMonthKey === "2026-06" && ((p.id === "30038070" && d === 14) || (p.id === "30038079" && d === 21));
+                    const orangeBorder = isOrangeHighlight ? 'border-2 border-amber-500/90 shadow-[0_0_8px_rgba(245,158,11,0.2)]' : '';
+
+                    badgeHtml = `
+                        <div class="flex flex-col items-center justify-center rounded ${orangeBorder} p-0.5">
+                            <span class="text-[9px] font-black ${isOrangeHighlight ? 'text-amber-400' : 'text-purple-300'}">N</span>
+                            <span class="text-[8px] ${isOrangeHighlight ? 'text-amber-500/90 font-bold' : 'text-purple-400/70'} scale-90 tracking-tighter leading-none">${detail.replace('-', '<br>')}</span>
+                        </div>
+                    `;
+                } else {
+                    cellClass += "text-slate-600 hover:bg-slate-800/20";
+                    badgeHtml = `<span class="opacity-15 font-semibold text-[9px]">-</span>`;
+                }
+
+                rowHtml += `
+                    <td onclick="selectDayAndEmployee(${d}, ${idx})" class="${cellClass}">
+                        ${badgeHtml}
+                    </td>
+                `;
+            }
+
+            rowHtml += `</tr>`;
+            tbody.innerHTML += rowHtml;
+        });
+    }
+
+    function renderAlertsPanel() {
+        const config = monthsConfig[activeMonthKey];
+        const alertList = document.getElementById('critical-days-list');
+        alertList.innerHTML = '';
+
+        let countEmpty = 0;
+        let countSaturated = 0;
+
+        for (let d = 1; d <= config.days; d++) {
+            const dayObj = computedDays[d];
+            
+            if (dayObj.coberturaCritica || dayObj.sobrepoblado) {
+                const card = document.createElement('div');
+                let borderClass = 'border-slate-800 bg-slate-900/60';
+                let iconHtml = '';
+                let alertText = '';
+
+                if (dayObj.coberturaCritica) {
+                    countEmpty++;
+                    borderClass = 'border-rose-500/30 bg-rose-950/20 text-rose-200';
+                    iconHtml = `<i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i>`;
+                    
+                    let vacantShifts = [];
+                    if (dayObj.M.length === 0) vacantShifts.push('Mañana');
+                    if (dayObj.T.length === 0) vacantShifts.push('Tarde');
+                    if (dayObj.N.length === 0) vacantShifts.push('Noche');
+                    
+                    alertText = `Falta de personal en turno: <span class="font-bold">${vacantShifts.join(', ')}</span>`;
+                } else if (dayObj.sobrepoblado) {
+                    countSaturated++;
+                    borderClass = 'border-amber-500/30 bg-amber-950/20 text-amber-200';
+                    iconHtml = `<i data-lucide="info" class="w-4 h-4 text-amber-400"></i>`;
+                    
+                    let saturatedShifts = [];
+                    if (dayObj.M.length > 2) saturatedShifts.push(`Mañana (${dayObj.M.length} pers)`);
+                    if (dayObj.T.length > 2) saturatedShifts.push(`Tarde (${dayObj.T.length} pers)`);
+                    if (dayObj.N.length > 2) saturatedShifts.push(`Noche (${dayObj.N.length} pers)`);
+
+                    alertText = `Saturación operativa: <span class="font-bold">${saturatedShifts.join(', ')}</span>`;
+                }
+
+                card.className = `p-3 rounded-xl border ${borderClass} flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-95 transition-all`;
+                card.onclick = () => selectDayAndEmployee(d, null);
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <div class="p-2 rounded-lg bg-slate-950/40">
+                            ${iconHtml}
+                        </div>
+                        <div>
+                            <p class="text-xs font-extrabold flex items-center gap-1.5 text-slate-200">
+                                ${config.name.split(' ')[0]} ${d}, 2026 ${dayObj.isWeekend ? '<span class="text-[9px] bg-indigo-950 text-indigo-400 px-1.5 py-0.2 rounded font-normal">FDS</span>' : ''}
+                            </p>
+                            <p class="text-[10px] opacity-90 mt-0.5 leading-relaxed">${alertText}</p>
+                        </div>
+                    </div>
+                    <div class="text-[10px] bg-slate-950/60 px-2 py-1 rounded border border-slate-800 self-end sm:self-auto font-mono-code">
+                        Ver Detalles →
+                    </div>
+                `;
+
+                alertList.appendChild(card);
+            }
+        }
+
+        if (alertList.innerHTML === '') {
+            alertList.innerHTML = `
+                <div class="text-center py-8 text-slate-500 text-xs">
+                    <i data-lucide="check-circle" class="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-60"></i>
+                    No se registran desviaciones ni alertas operativas en este período.
+                </div>
+            `;
+        }
+
+        document.getElementById('kpi-empty-shifts').innerText = countEmpty;
+        document.getElementById('kpi-saturated-shifts').innerText = countSaturated;
+
+        const badge = document.getElementById('alert-badge');
+        if (countEmpty > 0) {
+            badge.innerText = `${countEmpty} Turnos Vacíos`;
+            badge.className = "bg-rose-950 text-rose-400 border border-rose-800 text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse";
+        } else if (countSaturated > 0) {
+            badge.innerText = `${countSaturated} Saturaciones`;
+            badge.className = "bg-amber-950 text-amber-400 border border-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold";
+        } else {
+            badge.innerText = "Operación Óptima";
+            badge.className = "bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] px-2 py-0.5 rounded-full font-bold";
+        }
+
+        lucide.createIcons();
+    }
+
+    // Inspección analítica de un día específico
+    function renderDayInspection(dayNum) {
+        selectedAuditDay = dayNum;
+        const config = monthsConfig[activeMonthKey];
+        const dayObj = computedDays[dayNum];
+
+        const dayBadge = document.getElementById('audit-day-badge');
+        dayBadge.innerText = `Día ${dayNum} de ${config.name.split(' ')[0]}`;
+
+        const container = document.getElementById('audit-day-shifts');
+        container.innerHTML = '';
+
+        const createShiftBlock = (title, staffList, colorClass, borderClass, bgClass, label) => {
+            let staffContent = '';
+
+            if (staffList.length === 0) {
+                staffContent = `
+                    <div class="text-center py-2.5 bg-rose-950/20 rounded-lg border border-rose-500/20 text-rose-400 text-[10px] font-extrabold tracking-wide uppercase animate-pulse">
+                        ⚠️ Alerta: Sin Cobertura (Déficit de Personal)
+                    </div>
+                `;
+            } else {
+                staffContent = `<div class="space-y-1.5">`;
+                staffList.forEach(p => {
+                    staffContent += `
+                        <div class="flex justify-between items-center bg-slate-950/40 p-2 rounded-lg border border-slate-850">
+                            <div class="flex items-center gap-2">
+                                <span class="w-5 h-5 rounded flex items-center justify-center text-[8px] font-black bg-gradient-to-br ${p.color} text-white">
+                                    ${p.avatar}
+                                </span>
+                                <span class="text-xs font-semibold text-slate-200">${p.nombre}</span>
+                            </div>
+                            <span class="text-[9px] font-mono-code bg-indigo-950/40 text-indigo-400 px-1.5 py-0.5 rounded">
+                                Horario: ${p.detalle}
+                            </span>
+                        </div>
+                    `;
+                });
+                staffContent += `</div>`;
+            }
+
+            const overstaffBadge = staffList.length > 2 
+                ? `<span class="bg-amber-950 text-amber-400 border border-amber-900 text-[9px] px-1.5 py-0.2 rounded font-black animate-pulse">⚡ Sobrecarga</span>`
+                : '';
+
+            return `
+                <div class="p-3.5 rounded-xl border ${borderClass} ${bgClass} space-y-2.5">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-extrabold ${colorClass} tracking-wide flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full ${colorClass.replace('text-', 'bg-')}"></span> ${label} (${staffList.length} asignados)
+                        </span>
+                        ${overstaffBadge}
+                    </div>
+                    ${staffContent}
+                </div>
+            `;
+        };
+
+        container.innerHTML += createShiftBlock(
+            'Mañana', 
+            dayObj.M, 
+            'text-sky-400', 
+            dayObj.M.length === 0 ? 'border-rose-500/20' : 'border-slate-800', 
+            dayObj.M.length === 0 ? 'bg-rose-950/5' : 'bg-slate-900/40', 
+            'TURNO MAÑANA (M)'
+        );
+        container.innerHTML += createShiftBlock(
+            'Tarde', 
+            dayObj.T, 
+            'text-amber-400', 
+            dayObj.T.length === 0 ? 'border-rose-500/20' : 'border-slate-800', 
+            dayObj.T.length === 0 ? 'bg-rose-950/5' : 'bg-slate-900/40', 
+            'TURNO TARDE (T)'
+        );
+        container.innerHTML += createShiftBlock(
+            'Noche', 
+            dayObj.N, 
+            'text-purple-400', 
+            dayObj.N.length === 0 ? 'border-rose-500/20' : 'border-slate-800', 
+            dayObj.N.length === 0 ? 'bg-rose-950/5' : 'bg-slate-900/40', 
+            'TURNO NOCHE (N)'
+        );
+    }
+
+    function loadEmployeeAudit(index) {
+        const activeRoster = getActiveRoster();
+        const p = activeRoster[index];
+        if (!p) return;
+
+        const variance = p.horasPlanificadasCalculadas - p.horasContrato;
+        
+        let varianceText = '';
+        let varianceBadgeClass = '';
+        if (variance < 0) {
+            varianceText = `Debe cubrir ${Math.abs(variance).toFixed(1)}h adicionales para cumplir contrato.`;
+            varianceBadgeClass = 'text-rose-400 bg-rose-950 border-rose-900';
+        } else if (variance === 0) {
+            varianceText = `Cumple perfectamente con el total de horas estipuladas.`;
+            varianceBadgeClass = 'text-emerald-400 bg-emerald-950 border-emerald-900';
+        } else {
+            varianceText = `Registra un superávit de +${variance.toFixed(1)}h planificadas en el mes.`;
+            varianceBadgeClass = 'text-indigo-400 bg-indigo-950 border-indigo-900';
+        }
+
+        const container = document.getElementById('profile-audit-card');
+        container.innerHTML = `
+            <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-850 relative overflow-hidden space-y-3">
+                <div class="absolute -top-10 -right-10 w-24 h-24 bg-indigo-500/5 blur-2xl rounded-full"></div>
+                
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm bg-gradient-to-br ${p.color} text-white shadow-md">
+                        ${p.avatar}
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-black text-slate-100 leading-tight">${p.nombre}</h4>
+                        <p class="text-[10px] text-slate-500 font-mono-code mt-0.5">RUT/ID: ${p.id}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-center text-xs pt-2">
+                    <div class="bg-slate-900 border border-slate-800 p-2 rounded-lg">
+                        <span class="block text-[10px] text-slate-500 uppercase font-semibold">Horas Contrato</span>
+                        <span class="text-sm font-black text-slate-300 font-mono-code">${p.horasContrato.toFixed(2)}h</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-2 rounded-lg">
+                        <span class="block text-[10px] text-slate-500 uppercase font-semibold">Planificado Real</span>
+                        <span class="text-sm font-black text-indigo-400 font-mono-code">${p.horasPlanificadasCalculadas.toFixed(1)}h</span>
+                    </div>
+                </div>
+
+                <div class="p-2.5 rounded-lg border text-[10px] flex items-center gap-2 ${varianceBadgeClass}">
+                    <i data-lucide="info" class="w-4 h-4 shrink-0"></i>
+                    <span>${varianceText}</span>
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <h5 class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Asignación Visual Diaria (Mapa de Calor)</h5>
+                <div class="grid grid-cols-7 gap-1 text-center text-[10px]">
+                    <div class="text-[8px] text-slate-500 font-black uppercase">Lun</div>
+                    <div class="text-[8px] text-slate-500 font-black uppercase">Mar</div>
+                    <div class="text-[8px] text-slate-500 font-black uppercase">Mié</div>
+                    <div class="text-[8px] text-slate-500 font-black uppercase">Jue</div>
+                    <div class="text-[8px] text-slate-500 font-black uppercase">Vie</div>
+                    <div class="text-[8px] text-slate-500 font-black uppercase text-indigo-400">Sáb</div>
+                    <div class="text-[8px] text-slate-500 font-black uppercase text-indigo-400">Dom</div>
+                    
+                    ${generateMiniCalendarCells(p)}
+                </div>
+            </div>
+        `;
+
+        lucide.createIcons();
+    }
+
+    // Genera las mini celdas del mapa de calor de asistencia individual
+    function generateMiniCalendarCells(employee) {
+        const config = monthsConfig[activeMonthKey];
+        let cellsHtml = '';
+
+        const emptyCells = config.startDayOfWeek - 1;
+        for (let i = 0; i < emptyCells; i++) {
+            cellsHtml += `<div class="aspect-square rounded opacity-0"></div>`;
+        }
+
+        for (let d = 1; d <= config.days; d++) {
+            const shift = employee.turnos[d];
+            let cellStyle = 'bg-slate-900 border border-slate-800 text-slate-600';
+            let cellText = d;
+
+            if (shift === 'M') {
+                cellStyle = 'bg-sky-950/40 text-sky-400 border border-sky-800/40 font-bold';
+                cellText = 'M';
+            } else if (shift === 'T') {
+                cellStyle = 'bg-amber-950/40 text-amber-400 border border-amber-800/40 font-bold';
+                cellText = 'T';
+            } else if (shift === 'N') {
+                cellStyle = 'bg-purple-950/40 text-purple-400 border border-purple-850/40 font-bold';
+                cellText = 'N';
+            }
+
+            cellsHtml += `
+                <div class="aspect-square rounded flex items-center justify-center text-[9px] cursor-pointer hover:scale-105 active:scale-95 transition-all ${cellStyle}" onclick="selectDayAndEmployee(${d}, null)">
+                    ${cellText}
+                </div>
+            `;
+        }
+        return cellsHtml;
+    }
+
+    // Selecciona día y actualiza visualmente la auditoría
+    function selectDayAndEmployee(dayNum, employeeIdx) {
+        renderDayInspection(dayNum);
+        
+        if (employeeIdx !== null) {
+            document.getElementById('select-active-colaborador').value = employeeIdx;
+            loadEmployeeAudit(employeeIdx);
+        }
+    }
+
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `p-3 rounded-xl shadow-xl border text-xs font-semibold flex items-center justify-between gap-3 transition-all duration-300 transform translate-y-2 opacity-0 select-none pointer-events-auto`;
+        
+        let iconHtml = '';
+        if (type === 'error') {
+            toast.className += ' bg-rose-950/95 border-rose-500/40 text-rose-200 shadow-rose-950/40';
+            iconHtml = '<i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 shrink-0"></i>';
+        } else if (type === 'warning') {
+            toast.className += ' bg-amber-950/95 border-amber-500/40 text-amber-200 shadow-amber-950/40';
+            iconHtml = '<i data-lucide="alert-circle" class="w-4 h-4 text-amber-400 shrink-0"></i>';
+        } else if (type === 'success') {
+            toast.className += ' bg-emerald-950/95 border-emerald-500/40 text-emerald-200 shadow-emerald-950/40';
+            iconHtml = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0"></i>';
+        } else {
+            toast.className += ' bg-slate-900/95 border-slate-800 text-slate-100 shadow-slate-950/40';
+            iconHtml = '<i data-lucide="info" class="w-4 h-4 text-indigo-400 shrink-0"></i>';
+        }
+
+        toast.innerHTML = `
+            <div class="flex items-center gap-2">
+                ${iconHtml}
+                <span>${message}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white">&times;</button>
+        `;
+
+        container.appendChild(toast);
+        lucide.createIcons();
+
+        setTimeout(() => {
+            toast.classList.remove('opacity-0', 'translate-y-2');
+        }, 10);
+
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'translate-y-2');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    function openEditModal() {
+        const activeRoster = getActiveRoster();
+        const config = monthsConfig[activeMonthKey];
+
+        const selectEmployee = document.getElementById('modal-select-employee');
+        const selectDay = document.getElementById('modal-select-day');
+
+        selectEmployee.innerHTML = '';
+        activeRoster.forEach((p, idx) => {
+            const opt = document.createElement('option');
+            opt.value = idx;
+            opt.innerText = p.nombre;
+            selectEmployee.appendChild(opt);
+        });
+
+        selectDay.innerHTML = '';
+        for (let d = 1; d <= config.days; d++) {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.innerText = `Día ${d}`;
+            selectDay.appendChild(opt);
+        }
+
+        selectDay.value = selectedAuditDay;
+
+        const modal = document.getElementById('edit-shift-modal');
+        const modalContent = document.getElementById('edit-modal-content');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+
+        updateModalFields();
+    }
+
+    function closeEditModal() {
+        const modal = document.getElementById('edit-shift-modal');
+        const modalContent = document.getElementById('edit-modal-content');
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 200);
+    }
+
+    function updateModalFields() {
+        const activeRoster = getActiveRoster();
+        const employeeIdx = document.getElementById('modal-select-employee').value;
+        const day = document.getElementById('modal-select-day').value;
+
+        const employee = activeRoster[employeeIdx];
+        const shift = employee.turnos[day] || "";
+        const hoursRange = employee.horasDetalle[day] || "";
+
+        document.getElementById('modal-select-shift').value = shift;
+        document.getElementById('modal-input-range').value = hoursRange;
+
+        const rangeContainer = document.getElementById('modal-range-container');
+        if (shift === "") {
+            rangeContainer.classList.add('opacity-40', 'pointer-events-none');
+        } else {
+            rangeContainer.classList.remove('opacity-40', 'pointer-events-none');
+        }
+    }
+
+    function onModalShiftChange(val) {
+        const rangeContainer = document.getElementById('modal-range-container');
+        if (val === "") {
+            rangeContainer.classList.add('opacity-40', 'pointer-events-none');
+            document.getElementById('modal-input-range').value = "";
+        } else {
+            rangeContainer.classList.remove('opacity-40', 'pointer-events-none');
+            applyPresetRange(val);
+        }
+    }
+
+    // Aplica rangos horarios estándar en el modal para agilizar edición manual
+    function applyPresetRange(customShift = null) {
+        const shift = customShift || document.getElementById('modal-select-shift').value;
+        const rangeInput = document.getElementById('modal-input-range');
+
+        if (shift === 'M') rangeInput.value = "07:00-16:00";
+        else if (shift === 'T') rangeInput.value = "14:00-23:00";
+        else if (shift === 'N') rangeInput.value = "22:00-08:00";
+        else rangeInput.value = "";
+    }
+
+    // Guarda cambios locales y los envía al gestor de persistencia en la nube
+    async function saveShiftModification() {
+        const activeRoster = getActiveRoster();
+        const employeeIdx = document.getElementById('modal-select-employee').value;
+        const day = parseInt(document.getElementById('modal-select-day').value);
+        const shift = document.getElementById('modal-select-shift').value;
+        const range = document.getElementById('modal-input-range').value.trim();
+
+        if (shift !== "" && !range.match(/^\d{2}:\d{2}-\d{2}:\d{2}$/)) {
+            showToast("Ingresa un rango de horas válido (HH:MM-HH:MM)", "error");
+            return;
+        }
+
+        const employee = activeRoster[employeeIdx];
+
+        if (shift === "") {
+            delete employee.turnos[day];
+            delete employee.horasDetalle[day];
+        } else {
+            employee.turnos[day] = shift;
+            employee.horasDetalle[day] = range;
+        }
+
+        closeEditModal();
+
+        // Enviar actualización a la nube (o guardar en local)
+        if (window.cloudStorage) {
+            await window.cloudStorage.saveRoster(activeMonthKey, activeRoster);
+        }
+
+        recalculateAndReloadAll();
+    }
+
+    function initializeCharts() {
+        const ctxCoverage = document.getElementById('chart-coverage-density').getContext('2d');
+        const ctxDistribution = document.getElementById('chart-turn-distribution').getContext('2d');
+
+        const config = monthsConfig[activeMonthKey];
+        const labels = Array.from({length: config.days}, (_, i) => `${i + 1}`);
+        const dataM = [];
+        const dataT = [];
+        const dataN = [];
+
+        let countTotalM = 0;
+        let countTotalT = 0;
+        let countTotalN = 0;
+
+        for (let d = 1; d <= config.days; d++) {
+            dataM.push(computedDays[d].M.length);
+            dataT.push(computedDays[d].T.length);
+            dataN.push(computedDays[d].N.length);
+
+            countTotalM += computedDays[d].M.length;
+            countTotalT += computedDays[d].T.length;
+            countTotalN += computedDays[d].N.length;
+        }
+
+        document.getElementById('dist-m').innerText = `${countTotalM} asignados`;
+        document.getElementById('dist-t').innerText = `${countTotalT} asignados`;
+        document.getElementById('dist-n').innerText = `${countTotalN} asignados`;
+
+        if (chartCoverageDensityInstance) chartCoverageDensityInstance.destroy();
+        if (chartTurnDistributionInstance) chartTurnDistributionInstance.destroy();
+
+        chartCoverageDensityInstance = new Chart(ctxCoverage, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Mañana (M)',
+                        data: dataM,
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.05)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 2,
+                    },
+                    {
+                        label: 'Tarde (T)',
+                        data: dataT,
+                        borderColor: '#fbbf24',
+                        backgroundColor: 'rgba(251, 191, 36, 0.05)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 2,
+                    },
+                    {
+                        label: 'Noche (N)',
+                        data: dataN,
+                        borderColor: '#c084fc',
+                        backgroundColor: 'rgba(192, 132, 252, 0.05)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 2,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: '#94a3b8',
+                            font: { size: 10 }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#1e293b' },
+                        ticks: { color: '#64748b', font: { size: 9 } }
+                    },
+                    y: {
+                        min: 0,
+                        max: 4,
+                        grid: { color: '#1e293b' },
+                        ticks: { stepSize: 1, color: '#64748b', font: { size: 9 } }
+                    }
+                }
+            }
+        });
+
+        chartTurnDistributionInstance = new Chart(ctxDistribution, {
+            type: 'doughnut',
+            data: {
+                labels: ['Mañana (M)', 'Tarde (T)', 'Noche (N)'],
+                datasets: [{
+                    data: [countTotalM, countTotalT, countTotalN],
+                    backgroundColor: ['#38bdf8', '#fbbf24', '#c084fc'],
+                    borderColor: '#0f172a',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+
+    // Calcula de forma acumulada las horas totales de la planilla para KPIs
+    function computeTopKPIs() {
+        const activeRoster = getActiveRoster();
+        let totalScheduled = 0;
+        let totalContract = 0;
+
+        activeRoster.forEach(p => {
+            totalScheduled += p.horasPlanificadasCalculadas;
+            totalContract += p.horasContrato;
+        });
+
+        const netDeviation = totalScheduled - totalContract;
+
+        document.getElementById('kpi-total-scheduled').innerText = `${totalScheduled.toFixed(1)}h`;
+        
+        const deviationKpi = document.getElementById('kpi-net-deviation');
+        const deviationKpiSub = document.getElementById('kpi-deviation-sub');
+
+        if (netDeviation >= 0) {
+            deviationKpi.innerText = `+${netDeviation.toFixed(1)}h`;
+            deviationKpi.className = "text-3xl font-black font-mono-code text-emerald-400";
+            deviationKpiSub.innerText = "Superávit respecto a contratos";
+        } else {
+            deviationKpi.innerText = `${netDeviation.toFixed(1)}h`;
+            deviationKpi.className = "text-3xl font-black font-mono-code text-rose-400";
+            deviationKpiSub.innerText = "Déficit respecto a contratos";
+        }
+    }
+</script>
+</body>
+</html>
